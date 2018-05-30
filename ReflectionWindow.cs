@@ -10,48 +10,8 @@ namespace CippSharp.Reflection
 {
     public class ReflectionWindow : EditorWindow
     {
-//        [System.Serializable]
-//        public struct TypeReference
-//        {
-//            public Type type;
-//
-//            public TypeReference(Type type) : this()
-//            {
-//                this.type = type;
-//            }
-//            
-//        }
-//        
-//        [System.Serializable]
-//        public struct AssemblyReference
-//        {
-//            public Assembly assembly;
-//            public TypeReference[] types;
-//            public string[] typeNames;
-//
-//            public AssemblyReference (Assembly assembly): this()
-//            {
-//                this.assembly = assembly;
-//                Type[] tmpTypes = this.assembly.GetTypes();
-//                this.types = new TypeReference[tmpTypes.Length];
-//                for (int i = 0; i < types.Length; i++)
-//                {
-//                    this.types[i] = new TypeReference(tmpTypes[i]);
-//                }
-//                typeNames = tmpTypes.Select(t => t.FullName).ToArray();
-//            }
-//        }
-//
-//        private AssemblyReference[] assemblies = null;
-//        [SerializeField] private string[] assemblyNames;
-//        
-//        [SerializeField] private int assemblyIndex;
-//        [SerializeField] private int typeIndex;
-        
-//        private Assembly currentAssembly;
         private Type currentType;
-
-        private string inputType;
+        [SerializeField] private string inputType;
         
         [SerializeField, FoldableTextArea(1, 255)] public string fields;
         [SerializeField, FoldableTextArea(1, 255)] public string properties;
@@ -74,14 +34,6 @@ namespace CippSharp.Reflection
 
         private void OnEnable()
         {
-//            Assembly[] tmpAssemblies = AppDomain.CurrentDomain.GetAssemblies();
-//            assemblies = new AssemblyReference[tmpAssemblies.Length];
-//            for (int i = 0; i < tmpAssemblies.Length; i++)
-//            {
-//                assemblies[i] = new AssemblyReference(tmpAssemblies[i]);
-//            }
-//            assemblyNames = tmpAssemblies.Select(s => s.FullName).ToArray();
-            
             //OnGui
             serializedObject = new SerializedObject(this);
             ser_inputType = serializedObject.FindProperty("inputType");
@@ -94,24 +46,25 @@ namespace CippSharp.Reflection
         {
             scrollView = EditorGUILayout.BeginScrollView(scrollView);
             serializedObject.Update();
+
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.PropertyField(ser_inputType);
             
             if (GUILayout.Button("Search", EditorStyles.miniButtonRight))
             {
                 SearchType();
-                if (currentType != null)
-                {
-                    RepaintType(currentType);
-                }
+                RepaintType(currentType);
             }
-
+            
             EditorGUILayout.EndHorizontal();
-
+            
+            bool guiStatus = GUI.enabled;
+            GUI.enabled = false;
             EditorGUILayout.PropertyField(ser_fields);
             EditorGUILayout.PropertyField(ser_properties);
             EditorGUILayout.PropertyField(ser_methods);
-
+            GUI.enabled = guiStatus;
+            
             serializedObject.ApplyModifiedProperties();
             EditorGUILayout.EndScrollView();
         }
@@ -136,6 +89,14 @@ namespace CippSharp.Reflection
 
         void RepaintType(Type targetType)
         {
+            if (targetType == null)
+            {
+                fields = "Fields:";
+                properties = "Properties:";
+                methods = "Methods:";
+                return;
+            }
+
             List<FieldInfo> fieldInfos = ReflectionUtility.GetFields(targetType);
             fields = "Fields:";
             for (int i = 0; i < fieldInfos.Count; i++)

@@ -75,6 +75,8 @@ namespace CippSharp.Reflection
 						{
 							tmp = string.Format(", {0} {1}, ", parameterInfo.ParameterType.Name, parameterInfo.Name);
 						}
+
+						parameters += tmp;
 					}
 				}
 
